@@ -20,13 +20,10 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
 #modalResponsable {
     display:none;
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    top:0; left:0;
+    width:100%; height:100%;
     background:rgba(0,0,0,0.5);
 }
-
 .modal-content {
     background:white;
     padding:20px;
@@ -41,25 +38,34 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
 
 <h2>Registro de Proyecto</h2>
 
-<input type="text" id="nombreProyecto" placeholder="Nombre del proyecto">
-<input type="text" id="ubicacion" placeholder="Ubicación">
-<input type="text" id="tipoVivienda" placeholder="Tipo de vivienda">
+<input id="nombreProyecto" placeholder="Nombre del proyecto">
+<input id="ubicacion" placeholder="Ubicación">
+<input id="tipoVivienda" placeholder="Tipo de vivienda">
 
 <button onclick="guardarProyecto()">Guardar Proyecto</button>
+
+<hr>
+
+<h3>Filtros</h3>
+
+<select id="filtroProyecto" onchange="aplicarFiltros()">
+    <option value="">Todos los proyectos</option>
+</select>
+
+<input id="buscadorResponsable" placeholder="Buscar responsable..." oninput="aplicarFiltros()">
 
 <hr>
 
 <h3>Proyectos registrados</h3>
 <div id="listaProyectos"></div>
 
-<!-- 🔹 MODAL -->
+<!-- MODAL -->
 <div id="modalResponsable">
   <div class="modal-content">
-    
     <h3>Agregar Responsable</h3>
 
-    <input type="text" id="modalNombre" placeholder="Nombre">
-    
+    <input id="modalNombre" placeholder="Nombre">
+
     <select id="modalCargo">
       <option value="">Selecciona cargo</option>
       <option>Gerente de Construcción</option>
@@ -72,32 +78,21 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
       <option>SYST</option>
     </select>
 
-    <input type="email" id="modalCorreo" placeholder="Correo">
+    <input id="modalCorreo" placeholder="Correo">
 
     <br>
-
     <button onclick="guardarDesdeModal()">Guardar</button>
     <button onclick="cerrarModal()">Cancelar</button>
-
   </div>
 </div>
 
 <script type="module">
 
-// 🔹 IMPORTS
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    getDocs, 
-    updateDoc, 
-    doc, 
-    arrayUnion, 
-    arrayRemove 
+    getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔹 CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
     authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
@@ -107,170 +102,138 @@ const firebaseConfig = {
     appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
 };
 
-// 🔹 INIT
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔹 VARIABLE GLOBAL
+let proyectosData = [];
 let proyectoActual = null;
 
-// 🔹 GUARDAR PROYECTO
+// 🔹 Guardar proyecto
 window.guardarProyecto = async function () {
+    const nombreProyecto = nombreProyecto.value;
+    const ubicacion = ubicacion.value;
+    const tipoVivienda = tipoVivienda.value;
 
-    const nombreProyecto = document.getElementById("nombreProyecto").value;
-    const ubicacion = document.getElementById("ubicacion").value;
-    const tipoVivienda = document.getElementById("tipoVivienda").value;
+    if (!nombreProyecto || !ubicacion || !tipoVivienda) return alert("Completa campos");
 
-    if (!nombreProyecto || !ubicacion || !tipoVivienda) {
-        alert("Completa todos los campos");
-        return;
-    }
+    await addDoc(collection(db, "proyectos"), {
+        nombreProyecto, ubicacion, tipoVivienda, responsables: [], fecha: new Date()
+    });
 
-    try {
-        await addDoc(collection(db, "proyectos"), {
-            nombreProyecto,
-            ubicacion,
-            tipoVivienda,
-            responsables: [],
-            fecha: new Date()
-        });
-
-        alert("Proyecto guardado");
-
-        document.getElementById("nombreProyecto").value = "";
-        document.getElementById("ubicacion").value = "";
-        document.getElementById("tipoVivienda").value = "";
-
-        cargarProyectos();
-
-    } catch (error) {
-        console.error(error);
-        alert("Error al guardar");
-    }
+    cargarProyectos();
 };
 
-// 🔹 CARGAR PROYECTOS
+// 🔹 Cargar proyectos
 async function cargarProyectos() {
+    const snapshot = await getDocs(collection(db, "proyectos"));
 
-    const contenedor = document.getElementById("listaProyectos");
-    contenedor.innerHTML = "Cargando...";
+    proyectosData = [];
+    snapshot.forEach(d => proyectosData.push({ id: d.id, ...d.data() }));
 
-    try {
-        const querySnapshot = await getDocs(collection(db, "proyectos"));
-
-        contenedor.innerHTML = "";
-
-        if (querySnapshot.empty) {
-            contenedor.innerHTML = "No hay proyectos aún";
-            return;
-        }
-
-        querySnapshot.forEach((docSnap) => {
-
-            const data = docSnap.data();
-            const id = docSnap.id;
-
-            let responsablesHTML = "";
-
-            if (data.responsables && data.responsables.length > 0) {
-                data.responsables.forEach(r => {
-                    responsablesHTML += `
-                        <li>
-                            ${r.nombre} - ${r.cargo}
-                            <button onclick='eliminarResponsable("${id}", "${r.nombre}", "${r.cargo}", "${r.correo}")'>
-                                ❌
-                            </button>
-                        </li>
-                    `;
-                });
-            } else {
-                responsablesHTML = "<li>Sin responsables</li>";
-            }
-
-            const div = document.createElement("div");
-            div.classList.add("proyecto");
-
-            div.innerHTML = `
-                <strong>${data.nombreProyecto}</strong><br>
-                ${data.ubicacion} - ${data.tipoVivienda}<br><br>
-
-                <button onclick="abrirModal('${id}')">
-                    ➕ Agregar responsable
-                </button>
-
-                <ul>${responsablesHTML}</ul>
-            `;
-
-            contenedor.appendChild(div);
-        });
-
-    } catch (error) {
-        console.error(error);
-        contenedor.innerHTML = "Error al cargar datos";
-    }
+    llenarFiltro();
+    renderizar(proyectosData);
 }
 
-// 🔹 MODAL
-window.abrirModal = function(idProyecto) {
-    proyectoActual = idProyecto;
-    document.getElementById("modalResponsable").style.display = "block";
+// 🔹 Llenar filtro
+function llenarFiltro() {
+    filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
+    proyectosData.forEach(p => {
+        filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
+    });
+}
+
+// 🔹 Aplicar filtros
+window.aplicarFiltros = function () {
+
+    let lista = proyectosData;
+
+    const id = filtroProyecto.value;
+    const texto = buscadorResponsable.value.toLowerCase();
+
+    if (id) lista = lista.filter(p => p.id === id);
+
+    if (texto) {
+        lista = lista.filter(p =>
+            p.responsables?.some(r =>
+                r.nombre.toLowerCase().includes(texto) ||
+                r.cargo.toLowerCase().includes(texto) ||
+                r.correo.toLowerCase().includes(texto)
+            )
+        );
+    }
+
+    renderizar(lista);
+};
+
+// 🔹 Render
+function renderizar(lista) {
+
+    listaProyectos.innerHTML = "";
+
+    lista.forEach(p => {
+
+        let responsablesHTML = "";
+
+        if (p.responsables?.length) {
+            p.responsables.forEach(r => {
+                responsablesHTML += `
+                    <li>
+                        ${r.nombre} - ${r.cargo}
+                        <button onclick='eliminarResponsable("${p.id}", "${r.nombre}", "${r.cargo}", "${r.correo}")'>❌</button>
+                    </li>`;
+            });
+        } else {
+            responsablesHTML = "<li>Sin responsables</li>";
+        }
+
+        listaProyectos.innerHTML += `
+            <div class="proyecto">
+                <strong>${p.nombreProyecto}</strong><br>
+                ${p.ubicacion} - ${p.tipoVivienda}<br><br>
+
+                <button onclick="abrirModal('${p.id}')">➕ Agregar responsable</button>
+
+                <ul>${responsablesHTML}</ul>
+            </div>`;
+    });
+}
+
+// 🔹 Modal
+window.abrirModal = function(id) {
+    proyectoActual = id;
+    modalResponsable.style.display = "block";
 };
 
 window.cerrarModal = function() {
-    document.getElementById("modalResponsable").style.display = "none";
-
-    document.getElementById("modalNombre").value = "";
-    document.getElementById("modalCargo").value = "";
-    document.getElementById("modalCorreo").value = "";
+    modalResponsable.style.display = "none";
 };
 
-// 🔹 GUARDAR DESDE MODAL
+// 🔹 Guardar responsable
 window.guardarDesdeModal = async function () {
 
-    const nombre = document.getElementById("modalNombre").value;
-    const cargo = document.getElementById("modalCargo").value;
-    const correo = document.getElementById("modalCorreo").value;
+    const nombre = modalNombre.value;
+    const cargo = modalCargo.value;
+    const correo = modalCorreo.value;
 
-    if (!nombre || !cargo || !correo) {
-        alert("Completa todos los campos");
-        return;
-    }
+    if (!nombre || !cargo || !correo) return alert("Completa");
 
-    const ref = doc(db, "proyectos", proyectoActual);
+    await updateDoc(doc(db, "proyectos", proyectoActual), {
+        responsables: arrayUnion({ nombre, cargo, correo })
+    });
 
-    try {
-        await updateDoc(ref, {
-            responsables: arrayUnion({ nombre, cargo, correo })
-        });
-
-        cerrarModal();
-        cargarProyectos();
-
-    } catch (error) {
-        console.error(error);
-        alert("Error al guardar");
-    }
+    cerrarModal();
+    cargarProyectos();
 };
 
-// 🔹 ELIMINAR RESPONSABLE
-window.eliminarResponsable = async function (idProyecto, nombre, cargo, correo) {
-
-    const ref = doc(db, "proyectos", idProyecto);
-
-    try {
-        await updateDoc(ref, {
-            responsables: arrayRemove({ nombre, cargo, correo })
-        });
-
-        cargarProyectos();
-
-    } catch (error) {
-        console.error(error);
-        alert("Error al eliminar responsable");
-    }
+// 🔹 Eliminar responsable
+window.eliminarResponsable = async function (id, nombre, cargo, correo) {
+    await updateDoc(doc(db, "proyectos", id), {
+        responsables: arrayRemove({ nombre, cargo, correo })
+    });
+    cargarProyectos();
 };
 
-// 🔹 INICIO
+// 🔹 Inicio
 cargarProyectos();
 
 </script>
