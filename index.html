@@ -1,92 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTROL OBRAS</title>
+<meta charset="UTF-8">
+<title>Proyectos de Obra</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f6f8;
-        }
-        .container {
-            text-align: center;
-        }
-        h1 {
-            color: #2c3e50;
-        }
-        input {
-            padding: 10px;
-            margin-top: 10px;
-            width: 250px;
-        }
-        button {
-            padding: 10px 15px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-    </style>
+<style>
+body { font-family: Arial; padding: 20px; }
+input { display: block; margin: 5px 0; padding: 8px; width: 300px; }
+button { margin-top: 10px; padding: 8px; }
+.responsable { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+</style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Hola Mundo 👷‍♂️</h1>
-        <p>ControlObras + Firebase</p>
 
-        <input type="text" id="datoInput" placeholder="Escribe un dato">
-        <br>
-        <button onclick="guardarDato()">Guardar en Firebase</button>
-    </div>
+<h2>Registro de Proyecto</h2>
 
-    <script type="module">
-        // IMPORTS correctos para HTML estático
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<input type="text" id="nombreProyecto" placeholder="Nombre del proyecto">
+<input type="text" id="ubicacion" placeholder="Ubicación">
+<input type="text" id="tipoVivienda" placeholder="Tipo de vivienda">
 
-        // CONFIG DEL NUEVO PROYECTO
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
-            authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
-            projectId: "controlobras-5411a-85cf2",
-            storageBucket: "controlobras-5411a-85cf2.firebasestorage.app",
-            messagingSenderId: "439125911053",
-            appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
-        };
+<h3>Responsables</h3>
+<div id="responsablesContainer"></div>
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<button onclick="agregarResponsable()">➕ Agregar responsable</button>
+<br><br>
 
-        // Función global
-        window.guardarDato = async function () {
-            const valor = document.getElementById("datoInput").value;
+<button onclick="guardarProyecto()">Guardar Proyecto</button>
 
-            if (!valor) {
-                alert("Ingresa un dato");
-                return;
-            }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-            try {
-                await addDoc(collection(db, "pruebas"), {
-                    texto: valor,
-                    fecha: new Date()
-                });
+const firebaseConfig = {
+    apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
+    authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
+    projectId: "controlobras-5411a-85cf2",
+    storageBucket: "controlobras-5411a-85cf2.firebasestorage.app",
+    messagingSenderId: "439125911053",
+    appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
+};
 
-                alert("Dato guardado correctamente");
-                document.getElementById("datoInput").value = "";
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Error al guardar");
-            }
-        };
-    </script>
+// 🔹 Agregar responsable dinámico
+window.agregarResponsable = function () {
+    const container = document.getElementById("responsablesContainer");
+
+    const div = document.createElement("div");
+    div.classList.add("responsable");
+
+    div.innerHTML = `
+        <input type="text" placeholder="Nombre" class="nombre">
+        <input type="text" placeholder="Cargo" class="cargo">
+        <input type="email" placeholder="Correo" class="correo">
+    `;
+
+    container.appendChild(div);
+};
+
+// 🔹 Guardar proyecto
+window.guardarProyecto = async function () {
+
+    const nombreProyecto = document.getElementById("nombreProyecto").value;
+    const ubicacion = document.getElementById("ubicacion").value;
+    const tipoVivienda = document.getElementById("tipoVivienda").value;
+
+    const responsablesHTML = document.querySelectorAll(".responsable");
+
+    let responsables = [];
+
+    responsablesHTML.forEach(div => {
+        const nombre = div.querySelector(".nombre").value;
+        const cargo = div.querySelector(".cargo").value;
+        const correo = div.querySelector(".correo").value;
+
+        if (nombre && cargo && correo) {
+            responsables.push({ nombre, cargo, correo });
+        }
+    });
+
+    try {
+        await addDoc(collection(db, "proyectos"), {
+            nombreProyecto,
+            ubicacion,
+            tipoVivienda,
+            responsables,
+            fecha: new Date()
+        });
+
+        alert("Proyecto guardado");
+
+    } catch (error) {
+        console.error(error);
+        alert("Error al guardar");
+    }
+};
+</script>
 
 </body>
 </html>
