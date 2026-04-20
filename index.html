@@ -6,9 +6,34 @@
 
 <style>
 body { font-family: Arial; padding: 20px; }
-input { display: block; margin: 5px 0; padding: 8px; width: 300px; }
+input, select { display: block; margin: 5px 0; padding: 8px; width: 300px; }
 button { margin-top: 5px; padding: 6px; cursor: pointer; }
-.proyecto { border: 1px solid #2c3e50; padding: 10px; margin-top: 10px; background: #f4f6f8; }
+
+.proyecto {
+    border: 1px solid #2c3e50;
+    padding: 10px;
+    margin-top: 10px;
+    background: #f4f6f8;
+}
+
+/* Modal */
+#modalResponsable {
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background:white;
+    padding:20px;
+    margin:10% auto;
+    width:300px;
+    border-radius:8px;
+}
 </style>
 </head>
 
@@ -26,6 +51,36 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
 
 <h3>Proyectos registrados</h3>
 <div id="listaProyectos"></div>
+
+<!-- 🔹 MODAL -->
+<div id="modalResponsable">
+  <div class="modal-content">
+    
+    <h3>Agregar Responsable</h3>
+
+    <input type="text" id="modalNombre" placeholder="Nombre">
+    
+    <select id="modalCargo">
+      <option value="">Selecciona cargo</option>
+      <option>Gerente de Construcción</option>
+      <option>Subgerente de Construcción</option>
+      <option>Director de Obra</option>
+      <option>Residente de obra</option>
+      <option>Residente Administrativo</option>
+      <option>Residente de Control</option>
+      <option>Residente BIM</option>
+      <option>SYST</option>
+    </select>
+
+    <input type="email" id="modalCorreo" placeholder="Correo">
+
+    <br>
+
+    <button onclick="guardarDesdeModal()">Guardar</button>
+    <button onclick="cerrarModal()">Cancelar</button>
+
+  </div>
+</div>
 
 <script type="module">
 
@@ -55,6 +110,9 @@ const firebaseConfig = {
 // 🔹 INIT
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// 🔹 VARIABLE GLOBAL
+let proyectoActual = null;
 
 // 🔹 GUARDAR PROYECTO
 window.guardarProyecto = async function () {
@@ -136,11 +194,7 @@ async function cargarProyectos() {
                 <strong>${data.nombreProyecto}</strong><br>
                 ${data.ubicacion} - ${data.tipoVivienda}<br><br>
 
-                <input placeholder="Nombre" id="nombre-${id}">
-                <input placeholder="Cargo" id="cargo-${id}">
-                <input placeholder="Correo" id="correo-${id}">
-
-                <button onclick="agregarResponsableProyecto('${id}')">
+                <button onclick="abrirModal('${id}')">
                     ➕ Agregar responsable
                 </button>
 
@@ -156,30 +210,45 @@ async function cargarProyectos() {
     }
 }
 
-// 🔹 AGREGAR RESPONSABLE
-window.agregarResponsableProyecto = async function (idProyecto) {
+// 🔹 MODAL
+window.abrirModal = function(idProyecto) {
+    proyectoActual = idProyecto;
+    document.getElementById("modalResponsable").style.display = "block";
+};
 
-    const nombre = document.getElementById(`nombre-${idProyecto}`).value;
-    const cargo = document.getElementById(`cargo-${idProyecto}`).value;
-    const correo = document.getElementById(`correo-${idProyecto}`).value;
+window.cerrarModal = function() {
+    document.getElementById("modalResponsable").style.display = "none";
+
+    document.getElementById("modalNombre").value = "";
+    document.getElementById("modalCargo").value = "";
+    document.getElementById("modalCorreo").value = "";
+};
+
+// 🔹 GUARDAR DESDE MODAL
+window.guardarDesdeModal = async function () {
+
+    const nombre = document.getElementById("modalNombre").value;
+    const cargo = document.getElementById("modalCargo").value;
+    const correo = document.getElementById("modalCorreo").value;
 
     if (!nombre || !cargo || !correo) {
         alert("Completa todos los campos");
         return;
     }
 
-    const ref = doc(db, "proyectos", idProyecto);
+    const ref = doc(db, "proyectos", proyectoActual);
 
     try {
         await updateDoc(ref, {
             responsables: arrayUnion({ nombre, cargo, correo })
         });
 
+        cerrarModal();
         cargarProyectos();
 
     } catch (error) {
         console.error(error);
-        alert("Error al agregar responsable");
+        alert("Error al guardar");
     }
 };
 
