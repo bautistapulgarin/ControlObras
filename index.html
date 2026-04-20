@@ -5,36 +5,113 @@
 <title>Control Obras</title>
 
 <style>
-body { font-family: Arial; padding: 20px; }
-input, select { display: block; margin: 5px 0; padding: 8px; width: 300px; }
-button { margin-top: 5px; padding: 6px; cursor: pointer; }
 
-.proyecto {
-    border: 1px solid #2c3e50;
-    padding: 10px;
-    margin-top: 10px;
-    background: #f4f6f8;
+/* ===== BASE ===== */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #0f1a14;
+    color: #d8e3dc;
+    padding: 30px;
 }
 
-/* Modal */
+/* ===== TITULOS ===== */
+h2, h3 {
+    color: #a3c9a8;
+    margin-bottom: 10px;
+}
+
+/* ===== INPUTS ===== */
+input, select {
+    width: 300px;
+    padding: 10px;
+    margin: 6px 0;
+    border: 1px solid rgba(163, 201, 168, 0.3);
+    background: rgba(255,255,255,0.03);
+    color: #d8e3dc;
+    border-radius: 6px;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #6b8f71;
+}
+
+/* ===== BOTONES ===== */
+button {
+    padding: 8px 12px;
+    margin-top: 8px;
+    border: 1px solid rgba(163, 201, 168, 0.4);
+    background: rgba(163, 201, 168, 0.05);
+    color: #a3c9a8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background: rgba(163, 201, 168, 0.15);
+    border-color: #a3c9a8;
+}
+
+/* ===== TARJETAS ===== */
+.proyecto {
+    border: 1px solid rgba(163, 201, 168, 0.2);
+    background: rgba(255,255,255,0.02);
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+}
+
+/* ===== LISTA ===== */
+ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+/* ===== DIVISORES ===== */
+hr {
+    border: none;
+    border-top: 1px solid rgba(163, 201, 168, 0.2);
+    margin: 25px 0;
+}
+
+/* ===== MODAL ===== */
 #modalResponsable {
     display:none;
     position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.5);
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.6);
 }
+
 .modal-content {
-    background:white;
-    padding:20px;
-    margin:10% auto;
-    width:300px;
-    border-radius:8px;
+    background: #16251d;
+    padding: 20px;
+    margin: 8% auto;
+    width: 320px;
+    border-radius: 10px;
+    border: 1px solid rgba(163, 201, 168, 0.2);
 }
+
+/* ===== CONTENEDOR ===== */
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
 </style>
 </head>
 
 <body>
+
+<div class="container">
 
 <h2>Registro de Proyecto</h2>
 
@@ -59,9 +136,12 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
 <h3>Proyectos registrados</h3>
 <div id="listaProyectos"></div>
 
+</div>
+
 <!-- MODAL -->
 <div id="modalResponsable">
   <div class="modal-content">
+
     <h3>Agregar Responsable</h3>
 
     <input id="modalNombre" placeholder="Nombre">
@@ -80,18 +160,17 @@ button { margin-top: 5px; padding: 6px; cursor: pointer; }
 
     <input id="modalCorreo" placeholder="Correo">
 
-    <br>
     <button onclick="guardarDesdeModal()">Guardar</button>
     <button onclick="cerrarModal()">Cancelar</button>
+
   </div>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-    getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove 
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
@@ -108,33 +187,28 @@ const db = getFirestore(app);
 let proyectosData = [];
 let proyectoActual = null;
 
-// 🔹 Guardar proyecto
 window.guardarProyecto = async function () {
-    const nombreProyecto = nombreProyecto.value;
-    const ubicacion = ubicacion.value;
-    const tipoVivienda = tipoVivienda.value;
-
-    if (!nombreProyecto || !ubicacion || !tipoVivienda) return alert("Completa campos");
+    if (!nombreProyecto.value || !ubicacion.value || !tipoVivienda.value) return;
 
     await addDoc(collection(db, "proyectos"), {
-        nombreProyecto, ubicacion, tipoVivienda, responsables: [], fecha: new Date()
+        nombreProyecto: nombreProyecto.value,
+        ubicacion: ubicacion.value,
+        tipoVivienda: tipoVivienda.value,
+        responsables: [],
+        fecha: new Date()
     });
 
     cargarProyectos();
 };
 
-// 🔹 Cargar proyectos
 async function cargarProyectos() {
     const snapshot = await getDocs(collection(db, "proyectos"));
-
     proyectosData = [];
     snapshot.forEach(d => proyectosData.push({ id: d.id, ...d.data() }));
-
     llenarFiltro();
     renderizar(proyectosData);
 }
 
-// 🔹 Llenar filtro
 function llenarFiltro() {
     filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
     proyectosData.forEach(p => {
@@ -142,16 +216,11 @@ function llenarFiltro() {
     });
 }
 
-// 🔹 Aplicar filtros
 window.aplicarFiltros = function () {
-
     let lista = proyectosData;
+    if (filtroProyecto.value) lista = lista.filter(p => p.id === filtroProyecto.value);
 
-    const id = filtroProyecto.value;
     const texto = buscadorResponsable.value.toLowerCase();
-
-    if (id) lista = lista.filter(p => p.id === id);
-
     if (texto) {
         lista = lista.filter(p =>
             p.responsables?.some(r =>
@@ -165,40 +234,25 @@ window.aplicarFiltros = function () {
     renderizar(lista);
 };
 
-// 🔹 Render
 function renderizar(lista) {
-
     listaProyectos.innerHTML = "";
 
     lista.forEach(p => {
-
-        let responsablesHTML = "";
-
-        if (p.responsables?.length) {
-            p.responsables.forEach(r => {
-                responsablesHTML += `
-                    <li>
-                        ${r.nombre} - ${r.cargo}
-                        <button onclick='eliminarResponsable("${p.id}", "${r.nombre}", "${r.cargo}", "${r.correo}")'>❌</button>
-                    </li>`;
-            });
-        } else {
-            responsablesHTML = "<li>Sin responsables</li>";
-        }
+        let responsablesHTML = p.responsables?.map(r =>
+            `<li>${r.nombre} - ${r.cargo}
+             <button onclick='eliminarResponsable("${p.id}", "${r.nombre}", "${r.cargo}", "${r.correo}")'>Eliminar</button></li>`
+        ).join("") || "<li>Sin responsables</li>";
 
         listaProyectos.innerHTML += `
             <div class="proyecto">
                 <strong>${p.nombreProyecto}</strong><br>
-                ${p.ubicacion} - ${p.tipoVivienda}<br><br>
-
-                <button onclick="abrirModal('${p.id}')">➕ Agregar responsable</button>
-
+                ${p.ubicacion} - ${p.tipoVivienda}<br>
+                <button onclick="abrirModal('${p.id}')">Agregar responsable</button>
                 <ul>${responsablesHTML}</ul>
             </div>`;
     });
 }
 
-// 🔹 Modal
 window.abrirModal = function(id) {
     proyectoActual = id;
     modalResponsable.style.display = "block";
@@ -208,24 +262,21 @@ window.cerrarModal = function() {
     modalResponsable.style.display = "none";
 };
 
-// 🔹 Guardar responsable
 window.guardarDesdeModal = async function () {
-
-    const nombre = modalNombre.value;
-    const cargo = modalCargo.value;
-    const correo = modalCorreo.value;
-
-    if (!nombre || !cargo || !correo) return alert("Completa");
+    if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
 
     await updateDoc(doc(db, "proyectos", proyectoActual), {
-        responsables: arrayUnion({ nombre, cargo, correo })
+        responsables: arrayUnion({
+            nombre: modalNombre.value,
+            cargo: modalCargo.value,
+            correo: modalCorreo.value
+        })
     });
 
     cerrarModal();
     cargarProyectos();
 };
 
-// 🔹 Eliminar responsable
 window.eliminarResponsable = async function (id, nombre, cargo, correo) {
     await updateDoc(doc(db, "proyectos", id), {
         responsables: arrayRemove({ nombre, cargo, correo })
@@ -233,7 +284,6 @@ window.eliminarResponsable = async function (id, nombre, cargo, correo) {
     cargarProyectos();
 };
 
-// 🔹 Inicio
 cargarProyectos();
 
 </script>
