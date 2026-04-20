@@ -44,26 +44,26 @@
         <button onclick="guardarDato()">Guardar en Firebase</button>
     </div>
 
-    <!-- Firebase SDK (VERSIÓN CORRECTA PARA HTML ESTÁTICO) -->
     <script type="module">
+        // IMPORTS correctos para HTML estático
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // TU CONFIG (ya correcta)
+        // CONFIG DEL NUEVO PROYECTO
         const firebaseConfig = {
-            apiKey: "AIzaSyBb2bbSwa6onpXX23GPhd2F9Pk7GM-76tY",
-            authDomain: "controlobras-5411a.firebaseapp.com",
-            projectId: "controlobras-5411a",
-            storageBucket: "controlobras-5411a.firebasestorage.app",
-            messagingSenderId: "329199596033",
-            appId: "1:329199596033:web:f9b032df792582f7644600"
+            apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
+            authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
+            projectId: "controlobras-5411a-85cf2",
+            storageBucket: "controlobras-5411a-85cf2.firebasestorage.app",
+            messagingSenderId: "439125911053",
+            appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
         };
 
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Función global para el botón
+        // Función global
         window.guardarDato = async function () {
             const valor = document.getElementById("datoInput").value;
 
