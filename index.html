@@ -164,9 +164,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSy...",
-authDomain: "...",
-projectId: "...",
+apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
+authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
+projectId: "controlobras-5411a-85cf2",
+storageBucket: "controlobras-5411a-85cf2.firebasestorage.app",
+messagingSenderId: "439125911053",
+appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -176,7 +179,7 @@ let proyectosData = [];
 let proyectoActual = null;
 
 window.guardarProyecto = async function () {
-
+try {
 if (!nombreProyecto.value || !ubicacion.value || !tipoVivienda.value) return;
 
 await addDoc(collection(db,"proyectos"),{
@@ -195,6 +198,9 @@ fecha: new Date()
 });
 
 cargarProyectos();
+} catch(e) {
+console.error("Error guardando proyecto:", e);
+}
 };
 
 async function cargarProyectos() {
@@ -236,6 +242,15 @@ Observaciones: ${p.observaciones || "-"}
 });
 }
 
+window.abrirModal = function(id) {
+proyectoActual = id;
+modalResponsable.style.display = "block";
+};
+
+window.cerrarModal = function() {
+modalResponsable.style.display = "none";
+};
+
 window.abrirModalInfo = function(id) {
 proyectoActual = id;
 const p = proyectosData.find(x => x.id === id);
@@ -257,7 +272,7 @@ modalInfoProyecto.style.display = "none";
 };
 
 window.guardarInfoProyecto = async function () {
-
+try {
 await updateDoc(doc(db,"proyectos",proyectoActual),{
 ubicacion: infoUbicacion.value,
 cluster: infoCluster.value,
@@ -271,6 +286,9 @@ observaciones: infoObservaciones.value
 
 cerrarModalInfo();
 cargarProyectos();
+} catch(e) {
+console.error("Error actualizando proyecto:", e);
+}
 };
 
 cargarProyectos();
