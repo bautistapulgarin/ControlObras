@@ -30,11 +30,17 @@ body {
 }
 
 input, select, textarea {
-    width: 300px;
+    width: 100%;
     padding: 10px;
-    margin: 6px 0;
+    margin: 4px 0 10px 0;
     border: 1px solid var(--borde);
     border-radius: 8px;
+}
+
+label {
+    font-size: 13px;
+    color: var(--texto);
+    font-weight: 500;
 }
 
 textarea { height: 80px; }
@@ -73,8 +79,8 @@ button.eliminar { background: #d9534f; }
 .modal-content {
     background: white;
     padding: 22px;
-    margin: 8% auto;
-    width: 360px;
+    margin: 6% auto;
+    width: 380px;
     border-radius: 12px;
 }
 
@@ -87,15 +93,15 @@ button.eliminar { background: #d9534f; }
 
 <h2>Registro de Proyecto</h2>
 
-<input id="nombreProyecto" placeholder="Nombre del proyecto"><br>
-<input id="ubicacion" placeholder="Ubicación"><br>
+<input id="nombreProyecto" placeholder="Nombre del proyecto">
+<input id="ubicacion" placeholder="Ubicación">
 
 <select id="tipoVivienda">
 <option value="">Seleccione tipo de vivienda</option>
 <option value="VIS">VIS</option>
 <option value="NO VIS">NO VIS</option>
 <option value="VIP">VIP</option>
-</select><br>
+</select>
 
 <button onclick="guardarProyecto()">Guardar Proyecto</button>
 
@@ -105,11 +111,9 @@ button.eliminar { background: #d9534f; }
 
 <select id="filtroProyecto" onchange="aplicarFiltros()">
 <option value="">Todos los proyectos</option>
-</select><br>
+</select>
 
-<input id="buscadorResponsable"
-placeholder="Buscar responsable..."
-oninput="aplicarFiltros()">
+<input id="buscadorResponsable" placeholder="Buscar responsable..." oninput="aplicarFiltros()">
 
 <hr>
 
@@ -118,47 +122,35 @@ oninput="aplicarFiltros()">
 
 </div>
 
-<!-- MODAL RESPONSABLE -->
-<div id="modalResponsable">
-<div class="modal-content">
-<h3>Agregar Responsable</h3>
-
-<input id="modalNombre" placeholder="Nombre"><br>
-
-<select id="modalCargo">
-<option value="">Selecciona cargo</option>
-<option>Gerente de Construcción</option>
-<option>Subgerente de Construcción</option>
-<option>Director de Obra</option>
-<option>Residente de obra</option>
-<option>Residente Administrativo</option>
-<option>Residente de Control</option>
-<option>Residente BIM</option>
-<option>SYST</option>
-</select><br>
-
-<input id="modalCorreo" placeholder="Correo"><br>
-
-<button onclick="guardarDesdeModal()">Guardar</button>
-<button class="secundario" onclick="cerrarModal()">Cancelar</button>
-</div>
-</div>
-
 <!-- MODAL INFO PROYECTO -->
 <div id="modalInfoProyecto">
 <div class="modal-content">
 
 <h3>Información del Proyecto</h3>
 
-<input id="infoUbicacion"><br>
-<input id="infoCluster"><br>
-<input id="infoAvance"><br>
-<input id="infoDiaComite"><br>
-<input id="infoHoraComite"><br>
-<input id="infoDiaPAC"><br>
-<input id="infoHoraPAC"><br>
+<label>Ubicación</label>
+<input id="infoUbicacion" placeholder="Ej: Bogotá Norte">
 
-<textarea id="infoObservaciones"></textarea>
+<label>Cluster</label>
+<input id="infoCluster" placeholder="Ej: Cluster 1">
+
+<label>Avance del proyecto (%)</label>
+<input id="infoAvance" placeholder="Ej: 45%">
+
+<label>Día comité</label>
+<input id="infoDiaComite" placeholder="Ej: Lunes">
+
+<label>Hora comité</label>
+<input id="infoHoraComite" placeholder="Ej: 08:00 AM">
+
+<label>Día PAC</label>
+<input id="infoDiaPAC" placeholder="Ej: Miércoles">
+
+<label>Hora PAC</label>
+<input id="infoHoraPAC" placeholder="Ej: 02:00 PM">
+
+<label>Observaciones</label>
+<textarea id="infoObservaciones" placeholder="Notas generales del proyecto..."></textarea>
 
 <button onclick="guardarInfoProyecto()">Guardar</button>
 <button class="secundario" onclick="cerrarModalInfo()">Cancelar</button>
@@ -169,7 +161,7 @@ oninput="aplicarFiltros()">
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
@@ -186,16 +178,14 @@ const db = getFirestore(app);
 let proyectosData = [];
 let proyectoActual = null;
 
-/* ===== GUARDAR ===== */
-
 window.guardarProyecto = async function () {
+
 if (!nombreProyecto.value || !ubicacion.value || !tipoVivienda.value) return;
 
 await addDoc(collection(db,"proyectos"),{
 nombreProyecto: nombreProyecto.value,
 ubicacion: ubicacion.value,
 tipoVivienda: tipoVivienda.value,
-responsables: [],
 cluster:"",
 avance:"",
 diaComite:"",
@@ -209,50 +199,33 @@ fecha: new Date()
 cargarProyectos();
 };
 
-/* ===== CARGA ===== */
-
 async function cargarProyectos() {
 const snapshot = await getDocs(collection(db,"proyectos"));
 proyectosData = [];
 snapshot.forEach(d => proyectosData.push({id:d.id,...d.data()}));
-
 llenarFiltro();
 renderizar(proyectosData);
 }
 
-/* ===== LLENAR SELECT ===== */
-
 function llenarFiltro() {
 filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
-
 proyectosData.forEach(p => {
-filtroProyecto.innerHTML += `
-<option value="${p.id}">
-${p.nombreProyecto}
-</option>`;
+filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
 });
 }
 
-/* ===== FILTROS ===== */
-
 window.aplicarFiltros = function () {
-
 let lista = proyectosData;
 
-/* filtro por proyecto */
-if (filtroProyecto.value) {
+if (filtroProyecto.value)
 lista = lista.filter(p => p.id === filtroProyecto.value);
-}
 
-/* filtro por responsable */
 const texto = buscadorResponsable.value.toLowerCase();
 
 if (texto) {
 lista = lista.filter(p =>
-p.responsables?.some(r =>
-r.nombre.toLowerCase().includes(texto) ||
-r.cargo.toLowerCase().includes(texto) ||
-r.correo.toLowerCase().includes(texto)
+(p.responsables || []).some(r =>
+(r.nombre || "").toLowerCase().includes(texto)
 )
 );
 }
@@ -260,50 +233,23 @@ r.correo.toLowerCase().includes(texto)
 renderizar(lista);
 };
 
-/* ===== RENDER ===== */
-
 function renderizar(lista) {
 
 listaProyectos.innerHTML = "";
 
 lista.forEach(p => {
 
-let responsablesHTML =
-p.responsables?.map(r =>
-`<li>${r.nombre} - ${r.cargo}</li>`
-).join("") || "<li>Sin responsables</li>";
-
 listaProyectos.innerHTML += `
 <div class="proyecto">
 <strong>${p.nombreProyecto}</strong><br>
 ${p.ubicacion} - ${p.tipoVivienda}<br>
 
-<small>
-Cluster: ${p.cluster || "-"} |
-Avance: ${p.avance || "-"}<br>
-Comité: ${p.diaComite || "-"} ${p.horaComite || ""}<br>
-PAC: ${p.diaPAC || "-"} ${p.horaPAC || ""}<br>
-Observaciones: ${p.observaciones || "-"}
-</small><br><br>
-
-<button onclick="abrirModal('${p.id}')">Agregar responsable</button>
 <button onclick="abrirModalInfo('${p.id}')">Información del proyecto</button>
-
-<ul>${responsablesHTML}</ul>
 </div>`;
 });
 }
 
-/* ===== MODALES ===== */
-
-window.abrirModal = id => {
-proyectoActual = id;
-modalResponsable.style.display = "block";
-};
-
-window.cerrarModal = () => modalResponsable.style.display = "none";
-
-window.abrirModalInfo = id => {
+window.abrirModalInfo = function(id) {
 proyectoActual = id;
 const p = proyectosData.find(x => x.id === id);
 
@@ -319,9 +265,9 @@ infoObservaciones.value = p.observaciones || "";
 modalInfoProyecto.style.display = "block";
 };
 
-window.cerrarModalInfo = () => modalInfoProyecto.style.display = "none";
-
-/* ===== ACTUALIZAR INFO ===== */
+window.cerrarModalInfo = function() {
+modalInfoProyecto.style.display = "none";
+};
 
 window.guardarInfoProyecto = async function () {
 
@@ -337,24 +283,6 @@ observaciones: infoObservaciones.value
 });
 
 cerrarModalInfo();
-cargarProyectos();
-};
-
-/* ===== RESPONSABLES ===== */
-
-window.guardarDesdeModal = async function () {
-
-if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
-
-await updateDoc(doc(db,"proyectos",proyectoActual),{
-responsables: arrayUnion({
-nombre: modalNombre.value,
-cargo: modalCargo.value,
-correo: modalCorreo.value
-})
-});
-
-cerrarModal();
 cargarProyectos();
 };
 
