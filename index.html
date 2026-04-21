@@ -37,9 +37,7 @@ input, select, textarea {
     border-radius: 8px;
 }
 
-textarea {
-    height: 80px;
-}
+textarea { height: 80px; }
 
 button {
     padding: 9px 14px;
@@ -103,6 +101,18 @@ button.eliminar { background: #d9534f; }
 
 <hr>
 
+<h3>Filtros</h3>
+
+<select id="filtroProyecto" onchange="aplicarFiltros()">
+<option value="">Todos los proyectos</option>
+</select><br>
+
+<input id="buscadorResponsable"
+placeholder="Buscar responsable..."
+oninput="aplicarFiltros()">
+
+<hr>
+
 <h3>Proyectos registrados</h3>
 <div id="listaProyectos"></div>
 
@@ -111,7 +121,6 @@ button.eliminar { background: #d9534f; }
 <!-- MODAL RESPONSABLE -->
 <div id="modalResponsable">
 <div class="modal-content">
-
 <h3>Agregar Responsable</h3>
 
 <input id="modalNombre" placeholder="Nombre"><br>
@@ -132,7 +141,6 @@ button.eliminar { background: #d9534f; }
 
 <button onclick="guardarDesdeModal()">Guardar</button>
 <button class="secundario" onclick="cerrarModal()">Cancelar</button>
-
 </div>
 </div>
 
@@ -142,15 +150,15 @@ button.eliminar { background: #d9534f; }
 
 <h3>Información del Proyecto</h3>
 
-<input id="infoUbicacion" placeholder="Ubicación"><br>
-<input id="infoCluster" placeholder="Cluster"><br>
-<input id="infoAvance" placeholder="Avance de proyecto"><br>
-<input id="infoDiaComite" placeholder="Día comité"><br>
-<input id="infoHoraComite" placeholder="Hora comité"><br>
-<input id="infoDiaPAC" placeholder="Día PAC"><br>
-<input id="infoHoraPAC" placeholder="Hora PAC"><br>
+<input id="infoUbicacion"><br>
+<input id="infoCluster"><br>
+<input id="infoAvance"><br>
+<input id="infoDiaComite"><br>
+<input id="infoHoraComite"><br>
+<input id="infoDiaPAC"><br>
+<input id="infoHoraPAC"><br>
 
-<textarea id="infoObservaciones" placeholder="Observaciones"></textarea>
+<textarea id="infoObservaciones"></textarea>
 
 <button onclick="guardarInfoProyecto()">Guardar</button>
 <button class="secundario" onclick="cerrarModalInfo()">Cancelar</button>
@@ -178,8 +186,9 @@ const db = getFirestore(app);
 let proyectosData = [];
 let proyectoActual = null;
 
+/* ===== GUARDAR ===== */
+
 window.guardarProyecto = async function () {
-try {
 if (!nombreProyecto.value || !ubicacion.value || !tipoVivienda.value) return;
 
 await addDoc(collection(db,"proyectos"),{
@@ -198,18 +207,60 @@ fecha: new Date()
 });
 
 cargarProyectos();
-
-} catch(e) {
-console.error("Error guardando:", e);
-}
 };
+
+/* ===== CARGA ===== */
 
 async function cargarProyectos() {
 const snapshot = await getDocs(collection(db,"proyectos"));
 proyectosData = [];
 snapshot.forEach(d => proyectosData.push({id:d.id,...d.data()}));
+
+llenarFiltro();
 renderizar(proyectosData);
 }
+
+/* ===== LLENAR SELECT ===== */
+
+function llenarFiltro() {
+filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
+
+proyectosData.forEach(p => {
+filtroProyecto.innerHTML += `
+<option value="${p.id}">
+${p.nombreProyecto}
+</option>`;
+});
+}
+
+/* ===== FILTROS ===== */
+
+window.aplicarFiltros = function () {
+
+let lista = proyectosData;
+
+/* filtro por proyecto */
+if (filtroProyecto.value) {
+lista = lista.filter(p => p.id === filtroProyecto.value);
+}
+
+/* filtro por responsable */
+const texto = buscadorResponsable.value.toLowerCase();
+
+if (texto) {
+lista = lista.filter(p =>
+p.responsables?.some(r =>
+r.nombre.toLowerCase().includes(texto) ||
+r.cargo.toLowerCase().includes(texto) ||
+r.correo.toLowerCase().includes(texto)
+)
+);
+}
+
+renderizar(lista);
+};
+
+/* ===== RENDER ===== */
 
 function renderizar(lista) {
 
@@ -217,11 +268,9 @@ listaProyectos.innerHTML = "";
 
 lista.forEach(p => {
 
-let responsablesHTML = p.responsables?.map(r =>
-`<li>${r.nombre} - ${r.cargo}
-<button class="eliminar"
-onclick='eliminarResponsable("${p.id}","${r.nombre}","${r.cargo}","${r.correo}")'>
-Eliminar</button></li>`
+let responsablesHTML =
+p.responsables?.map(r =>
+`<li>${r.nombre} - ${r.cargo}</li>`
 ).join("") || "<li>Sin responsables</li>";
 
 listaProyectos.innerHTML += `
@@ -245,51 +294,16 @@ Observaciones: ${p.observaciones || "-"}
 });
 }
 
-/* ===== RESPONSABLES ===== */
+/* ===== MODALES ===== */
 
-window.abrirModal = function(id) {
+window.abrirModal = id => {
 proyectoActual = id;
 modalResponsable.style.display = "block";
 };
 
-window.cerrarModal = function() {
-modalResponsable.style.display = "none";
-};
+window.cerrarModal = () => modalResponsable.style.display = "none";
 
-window.guardarDesdeModal = async function () {
-try {
-if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
-
-await updateDoc(doc(db,"proyectos",proyectoActual),{
-responsables: arrayUnion({
-nombre: modalNombre.value,
-cargo: modalCargo.value,
-correo: modalCorreo.value
-})
-});
-
-cerrarModal();
-cargarProyectos();
-
-} catch(e) {
-console.error("Error responsable:", e);
-}
-};
-
-window.eliminarResponsable = async function(id,nombre,cargo,correo) {
-try {
-await updateDoc(doc(db,"proyectos",id),{
-responsables: arrayRemove({nombre,cargo,correo})
-});
-cargarProyectos();
-} catch(e) {
-console.error("Error eliminando:", e);
-}
-};
-
-/* ===== INFO PROYECTO ===== */
-
-window.abrirModalInfo = function(id) {
+window.abrirModalInfo = id => {
 proyectoActual = id;
 const p = proyectosData.find(x => x.id === id);
 
@@ -305,12 +319,12 @@ infoObservaciones.value = p.observaciones || "";
 modalInfoProyecto.style.display = "block";
 };
 
-window.cerrarModalInfo = function() {
-modalInfoProyecto.style.display = "none";
-};
+window.cerrarModalInfo = () => modalInfoProyecto.style.display = "none";
+
+/* ===== ACTUALIZAR INFO ===== */
 
 window.guardarInfoProyecto = async function () {
-try {
+
 await updateDoc(doc(db,"proyectos",proyectoActual),{
 ubicacion: infoUbicacion.value,
 cluster: infoCluster.value,
@@ -324,10 +338,24 @@ observaciones: infoObservaciones.value
 
 cerrarModalInfo();
 cargarProyectos();
+};
 
-} catch(e) {
-console.error("Error info proyecto:", e);
-}
+/* ===== RESPONSABLES ===== */
+
+window.guardarDesdeModal = async function () {
+
+if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
+
+await updateDoc(doc(db,"proyectos",proyectoActual),{
+responsables: arrayUnion({
+nombre: modalNombre.value,
+cargo: modalCargo.value,
+correo: modalCorreo.value
+})
+});
+
+cerrarModal();
+cargarProyectos();
 };
 
 cargarProyectos();
