@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Control Obras</title>
+<title>Control Obras - Ingeurbe</title>
 
 <style>
 :root {
@@ -12,7 +12,7 @@
 }
 
 body {
-    font-family: Arial;
+    font-family: 'Segoe UI', Arial, sans-serif; /* Fuente un poco más moderna */
     background: var(--fondo);
     padding: 30px;
 }
@@ -23,29 +23,54 @@ body {
     background: white;
     padding: 30px;
     border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra sutil */
+}
+
+/* Estilo para el logo */
+.header-logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    max-width: 250px; /* Ajusta según prefieras el tamaño */
+    height: auto;
+}
+
+h2, h3 {
+    color: var(--verde-principal);
+    border-bottom: 2px solid var(--borde);
+    padding-bottom: 10px;
 }
 
 input, select, textarea {
     width: 100%;
-    padding: 8px;
-    margin: 5px 0;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
 }
 
 button {
     margin-top: 8px;
-    padding: 8px;
+    padding: 10px 15px;
     background: var(--verde-principal);
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #16533f;
 }
 
 .proyecto {
     border: 1px solid var(--borde);
     padding: 15px;
-    margin-top: 10px;
+    margin-top: 15px;
     border-radius: 10px;
+    background: #fff;
 }
 
 #modalResponsable,
@@ -53,16 +78,20 @@ button {
     display:none;
     position:fixed;
     top:0;
+    left: 0;
     width:100%;
     height:100%;
     background: rgba(0,0,0,0.5);
+    z-index: 1000;
 }
 
 .modal-content {
     background:white;
     margin:5% auto;
     padding:20px;
-    width:350px;
+    width:90%;
+    max-width:400px;
+    border-radius: 10px;
 }
 </style>
 </head>
@@ -70,295 +99,238 @@ button {
 <body>
 
 <div class="container">
+    <img src="https://ingeurbe-my.sharepoint.com/personal/cpulgarin_construccion_com_co/_layouts/15/download.aspx?UniqueId=86c2f47b-cd5b-429b-8257-d6554033c13a" 
+         alt="Logo Viale 26" 
+         class="header-logo">
 
-<h2>Registro</h2>
+    <h2>Registro de Proyecto</h2>
 
-<input id="nombreProyecto" placeholder="Nombre">
-<input id="ubicacion" placeholder="Ubicación">
+    <input id="nombreProyecto" placeholder="Nombre del Proyecto">
+    <input id="ubicacion" placeholder="Ubicación">
 
-<select id="tipoVivienda">
-<option value="">Tipo vivienda</option>
-<option>VIS</option>
-<option>NO VIS</option>
-<option>VIP</option>
-</select>
+    <select id="tipoVivienda">
+        <option value="">Seleccione tipo vivienda</option>
+        <option>VIS</option>
+        <option>NO VIS</option>
+        <option>VIP</option>
+    </select>
 
-<button onclick="guardarProyecto()">Guardar</button>
+    <button onclick="guardarProyecto()">Guardar Proyecto</button>
 
-<hr>
+    <hr>
 
-<h3>Filtros</h3>
+    <h3>Filtros y Búsqueda</h3>
 
-<select id="filtroProyecto" onchange="aplicarFiltros()"></select>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+        <select id="filtroProyecto" onchange="aplicarFiltros()"></select>
+        <input id="buscadorResponsable" placeholder="Buscar responsable" oninput="aplicarFiltros()">
+        <select id="filtroCargo" onchange="aplicarFiltros()">
+            <option value="">Todos los cargos</option>
+        </select>
+    </div>
 
-<input id="buscadorResponsable"
-placeholder="Buscar responsable"
-oninput="aplicarFiltros()">
+    <button onclick="copiarCorreos()" style="background: #444;">Copiar correos visibles</button>
 
-<!-- NUEVO FILTRO -->
-<select id="filtroCargo" onchange="aplicarFiltros()">
-<option value="">Todos los cargos</option>
-</select>
+    <hr>
 
-<button onclick="copiarCorreos()">Copiar correos visibles</button>
-
-<hr>
-
-<div id="listaProyectos"></div>
+    <div id="listaProyectos"></div>
 
 </div>
 
-<!-- MODAL RESPONSABLE -->
 <div id="modalResponsable">
-<div class="modal-content">
-<input id="modalNombre" placeholder="Nombre">
-<input id="modalCargo" placeholder="Cargo">
-<input id="modalCorreo" placeholder="Correo">
+    <div class="modal-content">
+        <h3>Agregar Responsable</h3>
+        <input id="modalNombre" placeholder="Nombre">
+        <input id="modalCargo" placeholder="Cargo">
+        <input id="modalCorreo" placeholder="Correo">
 
-<button onclick="guardarResponsable()">Guardar</button>
-<button onclick="cerrarModal()">Cancelar</button>
-</div>
+        <button onclick="guardarResponsable()">Guardar</button>
+        <button onclick="cerrarModal()" style="background:#888;">Cancelar</button>
+    </div>
 </div>
 
-<!-- MODAL INFO -->
 <div id="modalInfoProyecto">
-<div class="modal-content">
+    <div class="modal-content" style="max-width: 500px;">
+        <h3>Información Detallada</h3>
+        <input id="infoUbicacion" placeholder="Ubicación">
+        <input id="infoCluster" placeholder="Cluster">
+        <input id="infoAvance" placeholder="Avance (%)">
+        <input id="infoDiaComite" placeholder="Día comité">
+        <input id="infoHoraComite" placeholder="Hora comité">
+        <input id="infoDiaPAC" placeholder="Día PAC">
+        <input id="infoHoraPAC" placeholder="Hora PAC">
+        <textarea id="infoObservaciones" placeholder="Observaciones"></textarea>
 
-<input id="infoUbicacion" placeholder="Ubicación">
-<input id="infoCluster" placeholder="Cluster">
-<input id="infoAvance" placeholder="Avance">
-<input id="infoDiaComite" placeholder="Día comité">
-<input id="infoHoraComite" placeholder="Hora comité">
-<input id="infoDiaPAC" placeholder="Día PAC">
-<input id="infoHoraPAC" placeholder="Hora PAC">
-<textarea id="infoObservaciones" placeholder="Observaciones"></textarea>
-
-<button onclick="guardarInfoProyecto()">Guardar</button>
-<button onclick="cerrarModalInfo()">Cancelar</button>
-
-</div>
+        <button onclick="guardarInfoProyecto()">Guardar Info</button>
+        <button onclick="cerrarModalInfo()" style="background:#888;">Cancelar</button>
+    </div>
 </div>
 
 <script type="module">
+    // (Mismo código de script que ya tenías)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
+        authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
+        projectId: "controlobras-5411a-85cf2"
+    };
 
-const firebaseConfig = {
-apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
-authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
-projectId: "controlobras-5411a-85cf2"
-};
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    let proyectosData = [];
+    let listaFiltrada = [];
+    let proyectoActual = null;
 
-let proyectosData = [];
-let listaFiltrada = [];
-let proyectoActual = null;
+    window.guardarProyecto = async () => {
+        if (!nombreProyecto.value) return;
+        await addDoc(collection(db,"proyectos"),{
+            nombreProyecto: nombreProyecto.value,
+            ubicacion: ubicacion.value,
+            tipoVivienda: tipoVivienda.value,
+            responsables: [],
+            cluster:"",
+            avance:"",
+            diaComite:"",
+            horaComite:"",
+            diaPAC:"",
+            horaPAC:"",
+            observaciones:""
+        });
+        cargarProyectos();
+        nombreProyecto.value = ""; ubicacion.value = "";
+    };
 
-/* ===== GUARDAR ===== */
-window.guardarProyecto = async () => {
+    async function cargarProyectos() {
+        const snap = await getDocs(collection(db,"proyectos"));
+        proyectosData = [];
+        snap.forEach(d => proyectosData.push({id:d.id,...d.data()}));
+        listaFiltrada = proyectosData;
+        llenarFiltroProyecto();
+        llenarFiltroCargo();
+        renderizar(listaFiltrada);
+    }
 
-if (!nombreProyecto.value) return;
+    function llenarFiltroProyecto() {
+        filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
+        proyectosData.forEach(p=>{
+            filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
+        });
+    }
 
-await addDoc(collection(db,"proyectos"),{
-nombreProyecto: nombreProyecto.value,
-ubicacion: ubicacion.value,
-tipoVivienda: tipoVivienda.value,
-responsables: [],
-cluster:"",
-avance:"",
-diaComite:"",
-horaComite:"",
-diaPAC:"",
-horaPAC:"",
-observaciones:""
-});
+    function llenarFiltroCargo() {
+        let cargos = new Set();
+        proyectosData.forEach(p=>{
+            (p.responsables||[]).forEach(r=>{
+                if(r.cargo) cargos.add(r.cargo);
+            });
+        });
+        filtroCargo.innerHTML = '<option value="">Todos los cargos</option>';
+        cargos.forEach(c=>{
+            filtroCargo.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+    }
 
-cargarProyectos();
-};
+    window.aplicarFiltros = () => {
+        let lista = proyectosData;
+        if (filtroProyecto.value) lista = lista.filter(p=>p.id === filtroProyecto.value);
+        let txt = buscadorResponsable.value.toLowerCase();
+        let cargo = filtroCargo.value;
+        if (txt || cargo) {
+            lista = lista.filter(p =>
+                (p.responsables||[]).some(r => {
+                    let cumpleTexto = !txt || (r.nombre || "").toLowerCase().includes(txt) || (r.correo || "").toLowerCase().includes(txt);
+                    let cumpleCargo = !cargo || r.cargo === cargo;
+                    return cumpleTexto && cumpleCargo;
+                })
+            );
+        }
+        listaFiltrada = lista;
+        renderizar(lista);
+    };
 
-/* ===== CARGAR ===== */
-async function cargarProyectos() {
-const snap = await getDocs(collection(db,"proyectos"));
-proyectosData = [];
-snap.forEach(d => proyectosData.push({id:d.id,...d.data()}));
+    function renderizar(lista){
+        listaProyectos.innerHTML = "";
+        lista.forEach(p=>{
+            let resp = (p.responsables||[]).map(r =>
+                `<li><strong>${r.nombre}</strong> - ${r.cargo} (${r.correo})</li>`
+            ).join("") || "<li>Sin responsables asignados</li>";
 
-listaFiltrada = proyectosData;
+            listaProyectos.innerHTML += `
+            <div class="proyecto">
+                <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <strong>${p.nombreProyecto}</strong>
+                    <div>
+                        <button onclick="abrirModal('${p.id}')"> + Responsable</button>
+                        <button onclick="abrirModalInfo('${p.id}')" style="background:#555;">Ver Info</button>
+                    </div>
+                </div>
+                <ul style="margin-top:10px; font-size: 0.9em;">${resp}</ul>
+            </div>`;
+        });
+    }
 
-llenarFiltroProyecto();
-llenarFiltroCargo();
-renderizar(listaFiltrada);
-}
+    window.copiarCorreos = () => {
+        let setCorreos = new Set();
+        listaFiltrada.forEach(p=>{
+            (p.responsables||[]).forEach(r=>{
+                if(r.correo) setCorreos.add(r.correo);
+            });
+        });
+        navigator.clipboard.writeText(Array.from(setCorreos).join("; "));
+        alert("Correos copiados al portapapeles");
+    };
 
-/* ===== LLENAR FILTROS ===== */
+    window.abrirModal = id=>{ proyectoActual = id; modalResponsable.style.display="block"; };
+    window.cerrarModal = ()=> modalResponsable.style.display="none";
 
-function llenarFiltroProyecto() {
-filtroProyecto.innerHTML = '<option value="">Todos</option>';
-proyectosData.forEach(p=>{
-filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
-});
-}
+    window.guardarResponsable = async ()=>{
+        await updateDoc(doc(db,"proyectos",proyectoActual),{
+            responsables: arrayUnion({
+                nombre: modalNombre.value,
+                cargo: modalCargo.value,
+                correo: modalCorreo.value
+            })
+        });
+        modalNombre.value=""; modalCargo.value=""; modalCorreo.value="";
+        cerrarModal();
+        cargarProyectos();
+    };
 
-function llenarFiltroCargo() {
+    window.abrirModalInfo = id=>{
+        proyectoActual=id;
+        let p = proyectosData.find(x=>x.id===id);
+        infoUbicacion.value = p.ubicacion||"";
+        infoCluster.value = p.cluster||"";
+        infoAvance.value = p.avance||"";
+        infoDiaComite.value = p.diaComite||"";
+        infoHoraComite.value = p.horaComite||"";
+        infoDiaPAC.value = p.diaPAC||"";
+        infoHoraPAC.value = p.horaPAC||"";
+        infoObservaciones.value = p.observaciones||"";
+        modalInfoProyecto.style.display="block";
+    };
 
-let cargos = new Set();
+    window.cerrarModalInfo = ()=> modalInfoProyecto.style.display="none";
 
-proyectosData.forEach(p=>{
-(p.responsables||[]).forEach(r=>{
-if(r.cargo) cargos.add(r.cargo);
-});
-});
+    window.guardarInfoProyecto = async ()=>{
+        await updateDoc(doc(db,"proyectos",proyectoActual),{
+            ubicacion: infoUbicacion.value,
+            cluster: infoCluster.value,
+            avance: infoAvance.value,
+            diaComite: infoDiaComite.value,
+            horaComite: infoHoraComite.value,
+            diaPAC: infoDiaPAC.value,
+            horaPAC: infoHoraPAC.value,
+            observaciones: infoObservaciones.value
+        });
+        cerrarModalInfo();
+        cargarProyectos();
+    };
 
-filtroCargo.innerHTML = '<option value="">Todos los cargos</option>';
-
-cargos.forEach(c=>{
-filtroCargo.innerHTML += `<option value="${c}">${c}</option>`;
-});
-}
-
-/* ===== FILTROS ===== */
-
-window.aplicarFiltros = () => {
-
-let lista = proyectosData;
-
-/* proyecto */
-if (filtroProyecto.value)
-lista = lista.filter(p=>p.id === filtroProyecto.value);
-
-/* responsable texto */
-let txt = buscadorResponsable.value.toLowerCase();
-
-/* cargo */
-let cargo = filtroCargo.value;
-
-if (txt || cargo) {
-
-lista = lista.filter(p =>
-(p.responsables||[]).some(r => {
-
-let cumpleTexto =
-!txt ||
-(r.nombre || "").toLowerCase().includes(txt) ||
-(r.correo || "").toLowerCase().includes(txt);
-
-let cumpleCargo =
-!cargo || r.cargo === cargo;
-
-return cumpleTexto && cumpleCargo;
-
-})
-);
-
-}
-
-listaFiltrada = lista;
-renderizar(lista);
-};
-
-/* ===== RENDER ===== */
-
-function renderizar(lista){
-
-listaProyectos.innerHTML = "";
-
-lista.forEach(p=>{
-
-let resp = (p.responsables||[]).map(r =>
-`<li>
-${r.nombre} - ${r.cargo}<br>
-<small>${r.correo}</small>
-</li>`
-).join("") || "<li>Sin responsables</li>";
-
-listaProyectos.innerHTML += `
-<div class="proyecto">
-
-<strong>${p.nombreProyecto}</strong>
-
-<button onclick="abrirModal('${p.id}')">Responsable</button>
-<button onclick="abrirModalInfo('${p.id}')">Info</button>
-
-<ul>${resp}</ul>
-
-</div>`;
-});
-}
-
-/* ===== COPIAR ===== */
-
-window.copiarCorreos = () => {
-
-let setCorreos = new Set();
-
-listaFiltrada.forEach(p=>{
-(p.responsables||[]).forEach(r=>{
-if(r.correo) setCorreos.add(r.correo);
-});
-});
-
-navigator.clipboard.writeText(Array.from(setCorreos).join("; "));
-alert("Correos copiados");
-};
-
-/* ===== MODALES ===== */
-
-window.abrirModal = id=>{
-proyectoActual = id;
-modalResponsable.style.display="block";
-};
-
-window.cerrarModal = ()=> modalResponsable.style.display="none";
-
-window.guardarResponsable = async ()=>{
-await updateDoc(doc(db,"proyectos",proyectoActual),{
-responsables: arrayUnion({
-nombre: modalNombre.value,
-cargo: modalCargo.value,
-correo: modalCorreo.value
-})
-});
-cerrarModal();
-cargarProyectos();
-};
-
-window.abrirModalInfo = id=>{
-proyectoActual=id;
-let p = proyectosData.find(x=>x.id===id);
-
-infoUbicacion.value = p.ubicacion||"";
-infoCluster.value = p.cluster||"";
-infoAvance.value = p.avance||"";
-infoDiaComite.value = p.diaComite||"";
-infoHoraComite.value = p.horaComite||"";
-infoDiaPAC.value = p.diaPAC||"";
-infoHoraPAC.value = p.horaPAC||"";
-infoObservaciones.value = p.observaciones||"";
-
-modalInfoProyecto.style.display="block";
-};
-
-window.cerrarModalInfo = ()=> modalInfoProyecto.style.display="none";
-
-window.guardarInfoProyecto = async ()=>{
-await updateDoc(doc(db,"proyectos",proyectoActual),{
-ubicacion: infoUbicacion.value,
-cluster: infoCluster.value,
-avance: infoAvance.value,
-diaComite: infoDiaComite.value,
-horaComite: infoHoraComite.value,
-diaPAC: infoDiaPAC.value,
-horaPAC: infoHoraPAC.value,
-observaciones: infoObservaciones.value
-});
-cerrarModalInfo();
-cargarProyectos();
-};
-
-cargarProyectos();
-
+    cargarProyectos();
 </script>
 
 </body>
