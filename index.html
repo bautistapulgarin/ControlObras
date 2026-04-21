@@ -18,7 +18,6 @@
 body {
     font-family: "Segoe UI", Arial, sans-serif;
     background: var(--fondo);
-    color: var(--texto);
     padding: 30px;
 }
 
@@ -40,7 +39,6 @@ input, select, textarea {
 
 textarea {
     height: 80px;
-    resize: vertical;
 }
 
 button {
@@ -78,7 +76,7 @@ button.eliminar { background: #d9534f; }
     background: white;
     padding: 22px;
     margin: 8% auto;
-    width: 350px;
+    width: 360px;
     border-radius: 12px;
 }
 
@@ -113,6 +111,7 @@ button.eliminar { background: #d9534f; }
 <!-- MODAL RESPONSABLE -->
 <div id="modalResponsable">
 <div class="modal-content">
+
 <h3>Agregar Responsable</h3>
 
 <input id="modalNombre" placeholder="Nombre"><br>
@@ -140,6 +139,7 @@ button.eliminar { background: #d9534f; }
 <!-- MODAL INFO PROYECTO -->
 <div id="modalInfoProyecto">
 <div class="modal-content">
+
 <h3>Información del Proyecto</h3>
 
 <input id="infoUbicacion" placeholder="Ubicación"><br>
@@ -198,15 +198,16 @@ fecha: new Date()
 });
 
 cargarProyectos();
+
 } catch(e) {
-console.error("Error guardando proyecto:", e);
+console.error("Error guardando:", e);
 }
 };
 
 async function cargarProyectos() {
 const snapshot = await getDocs(collection(db,"proyectos"));
 proyectosData = [];
-snapshot.forEach(d => proyectosData.push({id: d.id,...d.data()}));
+snapshot.forEach(d => proyectosData.push({id:d.id,...d.data()}));
 renderizar(proyectosData);
 }
 
@@ -216,9 +217,11 @@ listaProyectos.innerHTML = "";
 
 lista.forEach(p => {
 
-let responsablesHTML =
-p.responsables?.map(r =>
-`<li>${r.nombre} - ${r.cargo}</li>`
+let responsablesHTML = p.responsables?.map(r =>
+`<li>${r.nombre} - ${r.cargo}
+<button class="eliminar"
+onclick='eliminarResponsable("${p.id}","${r.nombre}","${r.cargo}","${r.correo}")'>
+Eliminar</button></li>`
 ).join("") || "<li>Sin responsables</li>";
 
 listaProyectos.innerHTML += `
@@ -242,6 +245,8 @@ Observaciones: ${p.observaciones || "-"}
 });
 }
 
+/* ===== RESPONSABLES ===== */
+
 window.abrirModal = function(id) {
 proyectoActual = id;
 modalResponsable.style.display = "block";
@@ -250,6 +255,39 @@ modalResponsable.style.display = "block";
 window.cerrarModal = function() {
 modalResponsable.style.display = "none";
 };
+
+window.guardarDesdeModal = async function () {
+try {
+if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
+
+await updateDoc(doc(db,"proyectos",proyectoActual),{
+responsables: arrayUnion({
+nombre: modalNombre.value,
+cargo: modalCargo.value,
+correo: modalCorreo.value
+})
+});
+
+cerrarModal();
+cargarProyectos();
+
+} catch(e) {
+console.error("Error responsable:", e);
+}
+};
+
+window.eliminarResponsable = async function(id,nombre,cargo,correo) {
+try {
+await updateDoc(doc(db,"proyectos",id),{
+responsables: arrayRemove({nombre,cargo,correo})
+});
+cargarProyectos();
+} catch(e) {
+console.error("Error eliminando:", e);
+}
+};
+
+/* ===== INFO PROYECTO ===== */
 
 window.abrirModalInfo = function(id) {
 proyectoActual = id;
@@ -286,8 +324,9 @@ observaciones: infoObservaciones.value
 
 cerrarModalInfo();
 cargarProyectos();
+
 } catch(e) {
-console.error("Error actualizando proyecto:", e);
+console.error("Error info proyecto:", e);
 }
 };
 
