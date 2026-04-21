@@ -176,7 +176,13 @@ hr {
 <input id="ubicacion" placeholder="Ubicación">
 <br>
 
-<input id="tipoVivienda" placeholder="Tipo de vivienda">
+<!-- ✅ CAMBIO A SELECT -->
+<select id="tipoVivienda">
+    <option value="">Seleccione tipo de vivienda</option>
+    <option value="VIS">VIS</option>
+    <option value="NO VIS">NO VIS</option>
+    <option value="VIP">VIP</option>
+</select>
 <br>
 
 <button onclick="guardarProyecto()">
@@ -222,37 +228,14 @@ oninput="aplicarFiltros()">
 Selecciona cargo
 </option>
 
-<option>
-Gerente de Construcción
-</option>
-
-<option>
-Subgerente de Construcción
-</option>
-
-<option>
-Director de Obra
-</option>
-
-<option>
-Residente de obra
-</option>
-
-<option>
-Residente Administrativo
-</option>
-
-<option>
-Residente de Control
-</option>
-
-<option>
-Residente BIM
-</option>
-
-<option>
-SYST
-</option>
+<option>Gerente de Construcción</option>
+<option>Subgerente de Construcción</option>
+<option>Director de Obra</option>
+<option>Residente de obra</option>
+<option>Residente Administrativo</option>
+<option>Residente de Control</option>
+<option>Residente BIM</option>
+<option>SYST</option>
 
 </select>
 
@@ -321,7 +304,6 @@ const db =
 getFirestore(app);
 
 let proyectosData = [];
-
 let proyectoActual = null;
 
 window.guardarProyecto =
@@ -336,19 +318,11 @@ if (
 await addDoc(
 collection(db,"proyectos"),
 {
-nombreProyecto:
-nombreProyecto.value,
-
-ubicacion:
-ubicacion.value,
-
-tipoVivienda:
-tipoVivienda.value,
-
+nombreProyecto: nombreProyecto.value,
+ubicacion: ubicacion.value,
+tipoVivienda: tipoVivienda.value,
 responsables: [],
-
-fecha:
-new Date()
+fecha: new Date()
 }
 );
 
@@ -366,16 +340,13 @@ collection(db,"proyectos")
 proyectosData = [];
 
 snapshot.forEach(d =>
-
 proyectosData.push({
 id: d.id,
 ...d.data()
 })
-
 );
 
 llenarFiltro();
-
 renderizar(proyectosData);
 
 }
@@ -399,47 +370,22 @@ ${p.nombreProyecto}
 window.aplicarFiltros =
 function () {
 
-let lista =
-proyectosData;
+let lista = proyectosData;
 
 if (filtroProyecto.value)
-
-lista =
-lista.filter(
-p =>
-p.id ===
-filtroProyecto.value
-);
+lista = lista.filter(p => p.id === filtroProyecto.value);
 
 const texto =
-buscadorResponsable.value
-.toLowerCase();
+buscadorResponsable.value.toLowerCase();
 
 if (texto) {
 
-lista =
-lista.filter(p =>
-
+lista = lista.filter(p =>
 p.responsables?.some(r =>
-
-r.nombre
-.toLowerCase()
-.includes(texto)
-
-||
-
-r.cargo
-.toLowerCase()
-.includes(texto)
-
-||
-
-r.correo
-.toLowerCase()
-.includes(texto)
-
+r.nombre.toLowerCase().includes(texto) ||
+r.cargo.toLowerCase().includes(texto) ||
+r.correo.toLowerCase().includes(texto)
 )
-
 );
 
 }
@@ -450,93 +396,44 @@ renderizar(lista);
 
 function renderizar(lista) {
 
-listaProyectos.innerHTML =
-"";
+listaProyectos.innerHTML = "";
 
 lista.forEach(p => {
 
 let responsablesHTML =
-
 p.responsables?.map(r =>
-
 `<li>
-
-${r.nombre}
--
-${r.cargo}
-
-<button
-class="eliminar"
-onclick='eliminarResponsable(
-"${p.id}",
-"${r.nombre}",
-"${r.cargo}",
-"${r.correo}"
-)'>
-
+${r.nombre} - ${r.cargo}
+<button class="eliminar"
+onclick='eliminarResponsable("${p.id}","${r.nombre}","${r.cargo}","${r.correo}")'>
 Eliminar
-
 </button>
-
 </li>`
-
-).join("")
-
-||
-
-"<li>Sin responsables</li>";
+).join("") || "<li>Sin responsables</li>";
 
 listaProyectos.innerHTML +=
-
 `<div class="proyecto">
-
-<strong>
-${p.nombreProyecto}
-</strong>
-
+<strong>${p.nombreProyecto}</strong>
 <br>
-
-${p.ubicacion}
--
-${p.tipoVivienda}
-
+${p.ubicacion} - ${p.tipoVivienda}
 <br>
-
-<button
-onclick="abrirModal('${p.id}')">
-
+<button onclick="abrirModal('${p.id}')">
 Agregar responsable
-
 </button>
-
-<ul>
-
-${responsablesHTML}
-
-</ul>
-
+<ul>${responsablesHTML}</ul>
 </div>`;
 
 });
 
 }
 
-window.abrirModal =
-function(id) {
-
+window.abrirModal = function(id) {
 proyectoActual = id;
-
-modalResponsable.style.display =
-"block";
-
+modalResponsable.style.display = "block";
 };
 
-window.cerrarModal =
-function() {
-
-modalResponsable.style.display =
-"none";
-
+window.cerrarModal = function() {
+modalResponsable.style.display = "none";
 };
 
 window.guardarDesdeModal =
@@ -549,72 +446,29 @@ if (
 ) return;
 
 await updateDoc(
-
-doc(
-db,
-"proyectos",
-proyectoActual
-),
-
+doc(db,"proyectos",proyectoActual),
 {
-
-responsables:
-
-arrayUnion({
-
-nombre:
-modalNombre.value,
-
-cargo:
-modalCargo.value,
-
-correo:
-modalCorreo.value
-
+responsables: arrayUnion({
+nombre: modalNombre.value,
+cargo: modalCargo.value,
+correo: modalCorreo.value
 })
-
 }
-
 );
 
 cerrarModal();
-
 cargarProyectos();
 
 };
 
 window.eliminarResponsable =
-async function (
-
-id,
-nombre,
-cargo,
-correo
-
-) {
+async function (id,nombre,cargo,correo) {
 
 await updateDoc(
-
-doc(
-db,
-"proyectos",
-id
-),
-
+doc(db,"proyectos",id),
 {
-
-responsables:
-
-arrayRemove({
-
-nombre,
-cargo,
-correo
-
-})
-
+responsables: arrayRemove({nombre,cargo,correo})
 }
-
 );
 
 cargarProyectos();
