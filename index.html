@@ -5,7 +5,6 @@
 <title>Control Obras</title>
 
 <style>
-
 :root {
     --verde-principal: #1f6f54;
     --fondo: #f4f7f5;
@@ -49,11 +48,6 @@ button {
     border-radius: 10px;
 }
 
-small {
-    display: block;
-    margin-top: 5px;
-}
-
 #modalResponsable,
 #modalInfoProyecto {
     display:none;
@@ -70,7 +64,6 @@ small {
     padding:20px;
     width:350px;
 }
-
 </style>
 </head>
 
@@ -97,9 +90,16 @@ small {
 <h3>Filtros</h3>
 
 <select id="filtroProyecto" onchange="aplicarFiltros()"></select>
-<input id="buscadorResponsable" placeholder="Buscar responsable" oninput="aplicarFiltros()">
 
-<!-- BOTÓN VISIBLE -->
+<input id="buscadorResponsable"
+placeholder="Buscar responsable"
+oninput="aplicarFiltros()">
+
+<!-- NUEVO FILTRO -->
+<select id="filtroCargo" onchange="aplicarFiltros()">
+<option value="">Todos los cargos</option>
+</select>
+
 <button onclick="copiarCorreos()">Copiar correos visibles</button>
 
 <hr>
@@ -157,7 +157,7 @@ let proyectosData = [];
 let listaFiltrada = [];
 let proyectoActual = null;
 
-/* ===== GUARDAR PROYECTO ===== */
+/* ===== GUARDAR ===== */
 window.guardarProyecto = async () => {
 
 if (!nombreProyecto.value) return;
@@ -185,35 +185,73 @@ const snap = await getDocs(collection(db,"proyectos"));
 proyectosData = [];
 snap.forEach(d => proyectosData.push({id:d.id,...d.data()}));
 
-listaFiltrada = proyectosData; // 🔑 CLAVE
-llenarFiltro();
+listaFiltrada = proyectosData;
+
+llenarFiltroProyecto();
+llenarFiltroCargo();
 renderizar(listaFiltrada);
 }
 
-/* ===== FILTRO ===== */
-function llenarFiltro() {
+/* ===== LLENAR FILTROS ===== */
+
+function llenarFiltroProyecto() {
 filtroProyecto.innerHTML = '<option value="">Todos</option>';
 proyectosData.forEach(p=>{
 filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
 });
 }
 
+function llenarFiltroCargo() {
+
+let cargos = new Set();
+
+proyectosData.forEach(p=>{
+(p.responsables||[]).forEach(r=>{
+if(r.cargo) cargos.add(r.cargo);
+});
+});
+
+filtroCargo.innerHTML = '<option value="">Todos los cargos</option>';
+
+cargos.forEach(c=>{
+filtroCargo.innerHTML += `<option value="${c}">${c}</option>`;
+});
+}
+
+/* ===== FILTROS ===== */
+
 window.aplicarFiltros = () => {
 
 let lista = proyectosData;
 
+/* proyecto */
 if (filtroProyecto.value)
 lista = lista.filter(p=>p.id === filtroProyecto.value);
 
+/* responsable texto */
 let txt = buscadorResponsable.value.toLowerCase();
 
-if (txt) {
+/* cargo */
+let cargo = filtroCargo.value;
+
+if (txt || cargo) {
+
 lista = lista.filter(p =>
-(p.responsables||[]).some(r =>
+(p.responsables||[]).some(r => {
+
+let cumpleTexto =
+!txt ||
 (r.nombre || "").toLowerCase().includes(txt) ||
-(r.correo || "").toLowerCase().includes(txt)
-)
+(r.correo || "").toLowerCase().includes(txt);
+
+let cumpleCargo =
+!cargo || r.cargo === cargo;
+
+return cumpleTexto && cumpleCargo;
+
+})
 );
+
 }
 
 listaFiltrada = lista;
@@ -221,6 +259,7 @@ renderizar(lista);
 };
 
 /* ===== RENDER ===== */
+
 function renderizar(lista){
 
 listaProyectos.innerHTML = "";
@@ -239,13 +278,6 @@ listaProyectos.innerHTML += `
 
 <strong>${p.nombreProyecto}</strong>
 
-<small>
-Ubicación: ${p.ubicacion || "-"}<br>
-Cluster: ${p.cluster || "-"}<br>
-Avance: ${p.avance || "-"}<br>
-Obs: ${p.observaciones || "-"}
-</small>
-
 <button onclick="abrirModal('${p.id}')">Responsable</button>
 <button onclick="abrirModalInfo('${p.id}')">Info</button>
 
@@ -255,7 +287,8 @@ Obs: ${p.observaciones || "-"}
 });
 }
 
-/* ===== COPIAR CORREOS ===== */
+/* ===== COPIAR ===== */
+
 window.copiarCorreos = () => {
 
 let setCorreos = new Set();
@@ -266,14 +299,12 @@ if(r.correo) setCorreos.add(r.correo);
 });
 });
 
-let texto = Array.from(setCorreos).join("; ");
-
-navigator.clipboard.writeText(texto);
-
-alert("Correos copiados:\n" + texto);
+navigator.clipboard.writeText(Array.from(setCorreos).join("; "));
+alert("Correos copiados");
 };
 
 /* ===== MODALES ===== */
+
 window.abrirModal = id=>{
 proyectoActual = id;
 modalResponsable.style.display="block";
@@ -293,7 +324,6 @@ cerrarModal();
 cargarProyectos();
 };
 
-/* INFO */
 window.abrirModalInfo = id=>{
 proyectoActual=id;
 let p = proyectosData.find(x=>x.id===id);
