@@ -6,77 +6,137 @@
 
 <style>
 
+/* ===== PALETA GERENCIAL ===== */
+:root {
+    --verde-principal: #1f6f54;
+    --verde-secundario: #2e8b6f;
+    --verde-suave: #e6f2ed;
+    --fondo: #f4f7f5;
+    --texto: #1f2d2a;
+    --borde: #d0ddd7;
+    --blanco: #ffffff;
+}
+
 /* ===== BASE ===== */
 body {
     font-family: "Segoe UI", Arial, sans-serif;
-    background: #0f1a14;
-    color: #d8e3dc;
+    background: var(--fondo);
+    color: var(--texto);
     padding: 30px;
 }
 
+/* ===== CONTENEDOR ===== */
+.container {
+    max-width: 950px;
+    margin: auto;
+    background: var(--blanco);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
 /* ===== TITULOS ===== */
-h2, h3 {
-    color: #a3c9a8;
+h2 {
+    color: var(--verde-principal);
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+h3 {
+    color: var(--verde-secundario);
+    margin-top: 20px;
     margin-bottom: 10px;
 }
 
 /* ===== INPUTS ===== */
 input, select {
     width: 300px;
-    padding: 10px;
+    padding: 11px;
     margin: 6px 0;
-    border: 1px solid rgba(163, 201, 168, 0.3);
-    background: rgba(255,255,255,0.03);
-    color: #d8e3dc;
-    border-radius: 6px;
-    outline: none;
+    border: 1px solid var(--borde);
+    background: var(--blanco);
+    color: var(--texto);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
 input:focus, select:focus {
-    border-color: #6b8f71;
+    border-color: var(--verde-principal);
+    box-shadow: 0 0 0 2px rgba(31,111,84,0.15);
+    outline: none;
 }
 
 /* ===== BOTONES ===== */
 button {
-    padding: 8px 12px;
+    padding: 9px 14px;
     margin-top: 8px;
-    border: 1px solid rgba(163, 201, 168, 0.4);
-    background: rgba(163, 201, 168, 0.05);
-    color: #a3c9a8;
-    border-radius: 6px;
+    border: none;
+    background: var(--verde-principal);
+    color: white;
+    border-radius: 8px;
     cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
     transition: all 0.2s ease;
 }
 
 button:hover {
-    background: rgba(163, 201, 168, 0.15);
-    border-color: #a3c9a8;
+    background: var(--verde-secundario);
+    transform: translateY(-1px);
+}
+
+/* ===== BOTON SECUNDARIO ===== */
+button.secundario {
+    background: #6c757d;
+}
+
+button.secundario:hover {
+    background: #5a6268;
+}
+
+/* ===== BOTON ELIMINAR ===== */
+button.eliminar {
+    background: #d9534f;
+}
+
+button.eliminar:hover {
+    background: #c9302c;
 }
 
 /* ===== TARJETAS ===== */
 .proyecto {
-    border: 1px solid rgba(163, 201, 168, 0.2);
-    background: rgba(255,255,255,0.02);
-    padding: 15px;
+    border: 1px solid var(--borde);
+    background: var(--blanco);
+    padding: 18px;
     margin-top: 15px;
-    border-radius: 10px;
-    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.proyecto:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.proyecto strong {
+    font-size: 16px;
+    color: var(--verde-principal);
 }
 
 /* ===== LISTA ===== */
 ul {
-    margin-top: 10px;
-    padding-left: 20px;
+    margin-top: 12px;
+    padding-left: 18px;
 }
 
 li {
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
 /* ===== DIVISORES ===== */
 hr {
     border: none;
-    border-top: 1px solid rgba(163, 201, 168, 0.2);
+    border-top: 1px solid var(--borde);
     margin: 25px 0;
 }
 
@@ -88,22 +148,17 @@ hr {
     left:0;
     width:100%;
     height:100%;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.5);
 }
 
 .modal-content {
-    background: #16251d;
-    padding: 20px;
+    background: var(--blanco);
+    padding: 22px;
     margin: 8% auto;
-    width: 320px;
-    border-radius: 10px;
-    border: 1px solid rgba(163, 201, 168, 0.2);
-}
-
-/* ===== CONTENEDOR ===== */
-.container {
-    max-width: 900px;
-    margin: auto;
+    width: 330px;
+    border-radius: 12px;
+    border: 1px solid var(--borde);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
 </style>
@@ -116,172 +171,454 @@ hr {
 <h2>Registro de Proyecto</h2>
 
 <input id="nombreProyecto" placeholder="Nombre del proyecto">
-<input id="ubicacion" placeholder="Ubicación">
-<input id="tipoVivienda" placeholder="Tipo de vivienda">
+<br>
 
-<button onclick="guardarProyecto()">Guardar Proyecto</button>
+<input id="ubicacion" placeholder="Ubicación">
+<br>
+
+<input id="tipoVivienda" placeholder="Tipo de vivienda">
+<br>
+
+<button onclick="guardarProyecto()">
+Guardar Proyecto
+</button>
 
 <hr>
 
 <h3>Filtros</h3>
 
 <select id="filtroProyecto" onchange="aplicarFiltros()">
-    <option value="">Todos los proyectos</option>
+<option value="">Todos los proyectos</option>
 </select>
 
-<input id="buscadorResponsable" placeholder="Buscar responsable..." oninput="aplicarFiltros()">
+<br>
+
+<input id="buscadorResponsable"
+placeholder="Buscar responsable..."
+oninput="aplicarFiltros()">
 
 <hr>
 
 <h3>Proyectos registrados</h3>
+
 <div id="listaProyectos"></div>
 
 </div>
 
 <!-- MODAL -->
+
 <div id="modalResponsable">
-  <div class="modal-content">
 
-    <h3>Agregar Responsable</h3>
+<div class="modal-content">
 
-    <input id="modalNombre" placeholder="Nombre">
+<h3>Agregar Responsable</h3>
 
-    <select id="modalCargo">
-      <option value="">Selecciona cargo</option>
-      <option>Gerente de Construcción</option>
-      <option>Subgerente de Construcción</option>
-      <option>Director de Obra</option>
-      <option>Residente de obra</option>
-      <option>Residente Administrativo</option>
-      <option>Residente de Control</option>
-      <option>Residente BIM</option>
-      <option>SYST</option>
-    </select>
+<input id="modalNombre" placeholder="Nombre">
+<br>
 
-    <input id="modalCorreo" placeholder="Correo">
+<select id="modalCargo">
 
-    <button onclick="guardarDesdeModal()">Guardar</button>
-    <button onclick="cerrarModal()">Cancelar</button>
+<option value="">
+Selecciona cargo
+</option>
 
-  </div>
+<option>
+Gerente de Construcción
+</option>
+
+<option>
+Subgerente de Construcción
+</option>
+
+<option>
+Director de Obra
+</option>
+
+<option>
+Residente de obra
+</option>
+
+<option>
+Residente Administrativo
+</option>
+
+<option>
+Residente de Control
+</option>
+
+<option>
+Residente BIM
+</option>
+
+<option>
+SYST
+</option>
+
+</select>
+
+<br>
+
+<input id="modalCorreo" placeholder="Correo">
+
+<br>
+
+<button onclick="guardarDesdeModal()">
+Guardar
+</button>
+
+<button
+class="secundario"
+onclick="cerrarModal()">
+Cancelar
+</button>
+
+</div>
+
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, arrayUnion, arrayRemove } 
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+updateDoc,
+doc,
+arrayUnion,
+arrayRemove
+}
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
-    authDomain: "controlobras-5411a-85cf2.firebaseapp.com",
-    projectId: "controlobras-5411a-85cf2",
-    storageBucket: "controlobras-5411a-85cf2.firebasestorage.app",
-    messagingSenderId: "439125911053",
-    appId: "1:439125911053:web:f93c17f3498d70ad9e5744"
+
+apiKey: "AIzaSyBYtDX-iqSpAIRtDRnp8c-2XLhmPyR-ePU",
+
+authDomain:
+"controlobras-5411a-85cf2.firebaseapp.com",
+
+projectId:
+"controlobras-5411a-85cf2",
+
+storageBucket:
+"controlobras-5411a-85cf2.firebasestorage.app",
+
+messagingSenderId:
+"439125911053",
+
+appId:
+"1:439125911053:web:f93c17f3498d70ad9e5744"
+
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const app =
+initializeApp(firebaseConfig);
+
+const db =
+getFirestore(app);
 
 let proyectosData = [];
+
 let proyectoActual = null;
 
-window.guardarProyecto = async function () {
-    if (!nombreProyecto.value || !ubicacion.value || !tipoVivienda.value) return;
+window.guardarProyecto =
+async function () {
 
-    await addDoc(collection(db, "proyectos"), {
-        nombreProyecto: nombreProyecto.value,
-        ubicacion: ubicacion.value,
-        tipoVivienda: tipoVivienda.value,
-        responsables: [],
-        fecha: new Date()
-    });
+if (
+!nombreProyecto.value ||
+!ubicacion.value ||
+!tipoVivienda.value
+) return;
 
-    cargarProyectos();
+await addDoc(
+collection(db,"proyectos"),
+{
+nombreProyecto:
+nombreProyecto.value,
+
+ubicacion:
+ubicacion.value,
+
+tipoVivienda:
+tipoVivienda.value,
+
+responsables: [],
+
+fecha:
+new Date()
+}
+);
+
+cargarProyectos();
+
 };
 
 async function cargarProyectos() {
-    const snapshot = await getDocs(collection(db, "proyectos"));
-    proyectosData = [];
-    snapshot.forEach(d => proyectosData.push({ id: d.id, ...d.data() }));
-    llenarFiltro();
-    renderizar(proyectosData);
+
+const snapshot =
+await getDocs(
+collection(db,"proyectos")
+);
+
+proyectosData = [];
+
+snapshot.forEach(d =>
+
+proyectosData.push({
+id: d.id,
+...d.data()
+})
+
+);
+
+llenarFiltro();
+
+renderizar(proyectosData);
+
 }
 
 function llenarFiltro() {
-    filtroProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
-    proyectosData.forEach(p => {
-        filtroProyecto.innerHTML += `<option value="${p.id}">${p.nombreProyecto}</option>`;
-    });
+
+filtroProyecto.innerHTML =
+'<option value="">Todos los proyectos</option>';
+
+proyectosData.forEach(p => {
+
+filtroProyecto.innerHTML +=
+`<option value="${p.id}">
+${p.nombreProyecto}
+</option>`;
+
+});
+
 }
 
-window.aplicarFiltros = function () {
-    let lista = proyectosData;
-    if (filtroProyecto.value) lista = lista.filter(p => p.id === filtroProyecto.value);
+window.aplicarFiltros =
+function () {
 
-    const texto = buscadorResponsable.value.toLowerCase();
-    if (texto) {
-        lista = lista.filter(p =>
-            p.responsables?.some(r =>
-                r.nombre.toLowerCase().includes(texto) ||
-                r.cargo.toLowerCase().includes(texto) ||
-                r.correo.toLowerCase().includes(texto)
-            )
-        );
-    }
+let lista =
+proyectosData;
 
-    renderizar(lista);
+if (filtroProyecto.value)
+
+lista =
+lista.filter(
+p =>
+p.id ===
+filtroProyecto.value
+);
+
+const texto =
+buscadorResponsable.value
+.toLowerCase();
+
+if (texto) {
+
+lista =
+lista.filter(p =>
+
+p.responsables?.some(r =>
+
+r.nombre
+.toLowerCase()
+.includes(texto)
+
+||
+
+r.cargo
+.toLowerCase()
+.includes(texto)
+
+||
+
+r.correo
+.toLowerCase()
+.includes(texto)
+
+)
+
+);
+
+}
+
+renderizar(lista);
+
 };
 
 function renderizar(lista) {
-    listaProyectos.innerHTML = "";
 
-    lista.forEach(p => {
-        let responsablesHTML = p.responsables?.map(r =>
-            `<li>${r.nombre} - ${r.cargo}
-             <button onclick='eliminarResponsable("${p.id}", "${r.nombre}", "${r.cargo}", "${r.correo}")'>Eliminar</button></li>`
-        ).join("") || "<li>Sin responsables</li>";
+listaProyectos.innerHTML =
+"";
 
-        listaProyectos.innerHTML += `
-            <div class="proyecto">
-                <strong>${p.nombreProyecto}</strong><br>
-                ${p.ubicacion} - ${p.tipoVivienda}<br>
-                <button onclick="abrirModal('${p.id}')">Agregar responsable</button>
-                <ul>${responsablesHTML}</ul>
-            </div>`;
-    });
+lista.forEach(p => {
+
+let responsablesHTML =
+
+p.responsables?.map(r =>
+
+`<li>
+
+${r.nombre}
+-
+${r.cargo}
+
+<button
+class="eliminar"
+onclick='eliminarResponsable(
+"${p.id}",
+"${r.nombre}",
+"${r.cargo}",
+"${r.correo}"
+)'>
+
+Eliminar
+
+</button>
+
+</li>`
+
+).join("")
+
+||
+
+"<li>Sin responsables</li>";
+
+listaProyectos.innerHTML +=
+
+`<div class="proyecto">
+
+<strong>
+${p.nombreProyecto}
+</strong>
+
+<br>
+
+${p.ubicacion}
+-
+${p.tipoVivienda}
+
+<br>
+
+<button
+onclick="abrirModal('${p.id}')">
+
+Agregar responsable
+
+</button>
+
+<ul>
+
+${responsablesHTML}
+
+</ul>
+
+</div>`;
+
+});
+
 }
 
-window.abrirModal = function(id) {
-    proyectoActual = id;
-    modalResponsable.style.display = "block";
+window.abrirModal =
+function(id) {
+
+proyectoActual = id;
+
+modalResponsable.style.display =
+"block";
+
 };
 
-window.cerrarModal = function() {
-    modalResponsable.style.display = "none";
+window.cerrarModal =
+function() {
+
+modalResponsable.style.display =
+"none";
+
 };
 
-window.guardarDesdeModal = async function () {
-    if (!modalNombre.value || !modalCargo.value || !modalCorreo.value) return;
+window.guardarDesdeModal =
+async function () {
 
-    await updateDoc(doc(db, "proyectos", proyectoActual), {
-        responsables: arrayUnion({
-            nombre: modalNombre.value,
-            cargo: modalCargo.value,
-            correo: modalCorreo.value
-        })
-    });
+if (
+!modalNombre.value ||
+!modalCargo.value ||
+!modalCorreo.value
+) return;
 
-    cerrarModal();
-    cargarProyectos();
+await updateDoc(
+
+doc(
+db,
+"proyectos",
+proyectoActual
+),
+
+{
+
+responsables:
+
+arrayUnion({
+
+nombre:
+modalNombre.value,
+
+cargo:
+modalCargo.value,
+
+correo:
+modalCorreo.value
+
+})
+
+}
+
+);
+
+cerrarModal();
+
+cargarProyectos();
+
 };
 
-window.eliminarResponsable = async function (id, nombre, cargo, correo) {
-    await updateDoc(doc(db, "proyectos", id), {
-        responsables: arrayRemove({ nombre, cargo, correo })
-    });
-    cargarProyectos();
+window.eliminarResponsable =
+async function (
+
+id,
+nombre,
+cargo,
+correo
+
+) {
+
+await updateDoc(
+
+doc(
+db,
+"proyectos",
+id
+),
+
+{
+
+responsables:
+
+arrayRemove({
+
+nombre,
+cargo,
+correo
+
+})
+
+}
+
+);
+
+cargarProyectos();
+
 };
 
 cargarProyectos();
