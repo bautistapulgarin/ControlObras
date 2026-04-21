@@ -99,6 +99,7 @@ small {
 <select id="filtroProyecto" onchange="aplicarFiltros()"></select>
 <input id="buscadorResponsable" placeholder="Buscar responsable" oninput="aplicarFiltros()">
 
+<!-- BOTÓN VISIBLE -->
 <button onclick="copiarCorreos()">Copiar correos visibles</button>
 
 <hr>
@@ -153,9 +154,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let proyectosData = [];
-let proyectoActual = null;
 let listaFiltrada = [];
+let proyectoActual = null;
 
+/* ===== GUARDAR PROYECTO ===== */
 window.guardarProyecto = async () => {
 
 if (!nombreProyecto.value) return;
@@ -177,14 +179,18 @@ observaciones:""
 cargarProyectos();
 };
 
+/* ===== CARGAR ===== */
 async function cargarProyectos() {
 const snap = await getDocs(collection(db,"proyectos"));
 proyectosData = [];
 snap.forEach(d => proyectosData.push({id:d.id,...d.data()}));
+
+listaFiltrada = proyectosData; // 🔑 CLAVE
 llenarFiltro();
-renderizar(proyectosData);
+renderizar(listaFiltrada);
 }
 
+/* ===== FILTRO ===== */
 function llenarFiltro() {
 filtroProyecto.innerHTML = '<option value="">Todos</option>';
 proyectosData.forEach(p=>{
@@ -204,7 +210,8 @@ let txt = buscadorResponsable.value.toLowerCase();
 if (txt) {
 lista = lista.filter(p =>
 (p.responsables||[]).some(r =>
-r.nombre.toLowerCase().includes(txt)
+(r.nombre || "").toLowerCase().includes(txt) ||
+(r.correo || "").toLowerCase().includes(txt)
 )
 );
 }
@@ -213,6 +220,7 @@ listaFiltrada = lista;
 renderizar(lista);
 };
 
+/* ===== RENDER ===== */
 function renderizar(lista){
 
 listaProyectos.innerHTML = "";
@@ -220,7 +228,10 @@ listaProyectos.innerHTML = "";
 lista.forEach(p=>{
 
 let resp = (p.responsables||[]).map(r =>
-`<li>${r.nombre} - ${r.cargo}</li>`
+`<li>
+${r.nombre} - ${r.cargo}<br>
+<small>${r.correo}</small>
+</li>`
 ).join("") || "<li>Sin responsables</li>";
 
 listaProyectos.innerHTML += `
@@ -232,8 +243,6 @@ listaProyectos.innerHTML += `
 Ubicación: ${p.ubicacion || "-"}<br>
 Cluster: ${p.cluster || "-"}<br>
 Avance: ${p.avance || "-"}<br>
-Comité: ${p.diaComite || "-"} ${p.horaComite || ""}<br>
-PAC: ${p.diaPAC || "-"} ${p.horaPAC || ""}<br>
 Obs: ${p.observaciones || "-"}
 </small>
 
@@ -246,8 +255,25 @@ Obs: ${p.observaciones || "-"}
 });
 }
 
-/* RESPONSABLE */
+/* ===== COPIAR CORREOS ===== */
+window.copiarCorreos = () => {
 
+let setCorreos = new Set();
+
+listaFiltrada.forEach(p=>{
+(p.responsables||[]).forEach(r=>{
+if(r.correo) setCorreos.add(r.correo);
+});
+});
+
+let texto = Array.from(setCorreos).join("; ");
+
+navigator.clipboard.writeText(texto);
+
+alert("Correos copiados:\n" + texto);
+};
+
+/* ===== MODALES ===== */
 window.abrirModal = id=>{
 proyectoActual = id;
 modalResponsable.style.display="block";
@@ -268,7 +294,6 @@ cargarProyectos();
 };
 
 /* INFO */
-
 window.abrirModalInfo = id=>{
 proyectoActual=id;
 let p = proyectosData.find(x=>x.id===id);
@@ -300,25 +325,6 @@ observaciones: infoObservaciones.value
 });
 cerrarModalInfo();
 cargarProyectos();
-};
-
-/* COPIAR CORREOS */
-
-window.copiarCorreos = () => {
-
-let correos = [];
-
-listaFiltrada.forEach(p=>{
-(p.responsables||[]).forEach(r=>{
-if(r.correo) correos.push(r.correo);
-});
-});
-
-let texto = correos.join("; ");
-
-navigator.clipboard.writeText(texto);
-
-alert("Correos copiados");
 };
 
 cargarProyectos();
